@@ -1,6 +1,5 @@
-import { resend } from "@/lib/resend";
-import VerificationEmail from "../../emails/VerificationEmail";
 import { ApiResponse } from "@/types/ApiResponse";
+import nodemailer from "nodemailer";
 
 export async function sendVerificationEmaiil(
   username: string,
@@ -8,16 +7,26 @@ export async function sendVerificationEmaiil(
   verifyCode: string
 ): Promise<ApiResponse> {
   try {
-    const { data, error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
+    const auth = nodemailer.createTransport({
+      service: "gmail",
+      secure: true,
+      port: 465,
+      auth: {
+        user: "mylmye07@gmail.com",
+        pass: process.env.NODEMAILER_PASS,
+      },
+    });
+    await auth.sendMail({
+      from: "mylmye07@gmail.com",
       to: email,
       subject: "FEEDBACK MANAGER :  Verification mail",
-      react: VerificationEmail({ username, otp: verifyCode }),
+      text: `
+      Hello ${username},
+      Thank you for registering. Please use the following verification
+      code to complete your registration:
+      --> ${verifyCode} <--`,
     });
 
-    if (error) {
-      console.log("Errors : -- ", error);
-    }
     return { success: true, message: "varification code send successfully" };
   } catch (error) {
     console.log("email component has error", error);
